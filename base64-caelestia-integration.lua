@@ -1,7 +1,7 @@
 return {
     "auribuo/base64-caelestia-integration",
     lazy = false,
-    dev = {true},
+    dev = { true },
     opts = {
         path = "~/.local/state/caelestia/scheme.json"
     },
@@ -36,6 +36,11 @@ return {
             return content
         end
 
+        if not read_entire_file() then
+            vim.notify("File is not readable. " .. path, vim.log.levels.ERROR)
+            return
+        end
+
         local function on_file_change()
             local contents = read_entire_file()
             if contents then
@@ -48,7 +53,7 @@ return {
         local function start_watching()
             local fd = ffi.C.inotify_init1(IN_NONBLOCK)
             if fd < 0 then
-                vim.notify("Failed to watch scheme file " .. path, vim.log.levels.ERROR)
+                vim.notify("Failed to watch scheme file. Failed to start notify " .. path, vim.log.levels.ERROR)
                 return
             end
 
