@@ -26,7 +26,7 @@ return {
         local IN_NONBLOCK = 0x800
         local BUF_LEN = 1024
 
-        local path = opts.path and opts.path:gsub("^~", vim.fn.expand("$HOME"))
+        local path = opts.path:gsub("^~", vim.fn.expand("$HOME"))
 
         --- @return string | nil
         local function read_entire_file()
