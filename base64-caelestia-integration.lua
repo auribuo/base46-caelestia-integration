@@ -37,8 +37,18 @@ return {
             return content
         end
 
-        if not read_entire_file() then
+        if not vim.fn.filereadable(path) then
             vim.notify("File is not readable. " .. path, vim.log.levels.ERROR)
+            return
+        end
+
+        local stat = vim.loop.fs_stat(path)
+        if not stat then
+            vim.notify("File does not exist: " .. path, vim.log.levels.ERROR)
+            return
+        end
+        if stat.type ~= "file" then
+            vim.notify("Path is not a regular file: " .. path, vim.log.levels.ERROR)
             return
         end
 
