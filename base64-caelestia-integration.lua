@@ -28,6 +28,7 @@ return {
 
         local path = opts.path and opts.path:gsub("^~", vim.fn.expand("$HOME"))
 
+        --- @return string | nil
         local function read_entire_file()
             local f = io.open(path, "r")
             if not f then return nil end
@@ -45,7 +46,7 @@ return {
             local contents = read_entire_file()
             if contents then
                 vim.schedule(function()
-                    vim.notify("File changed!", vim.log.levels.INFO)
+                    vim.notify("File changed! Bytes: " .. contents:len(), vim.log.levels.INFO)
                 end)
             end
         end
@@ -53,13 +54,13 @@ return {
         local function start_watching()
             local fd = ffi.C.inotify_init1(IN_NONBLOCK)
             if fd < 0 then
-                vim.notify("Failed to watch scheme file. Failed to start notify " .. path, vim.log.levels.ERROR)
+                vim.notify("Failed to initialize notify", vim.log.levels.ERROR)
                 return
             end
 
             local wd = ffi.C.inotify_add_watch(fd, path, IN_MODIFY)
             if wd < 0 then
-                vim.notify("Failed to watch scheme file " .. path, vim.log.levels.ERROR)
+                vim.notify("Failed to watch scheme file: " .. path, vim.log.levels.ERROR)
                 return
             end
 
