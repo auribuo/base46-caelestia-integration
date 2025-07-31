@@ -1,7 +1,13 @@
+--- @class IntegrationOptions 
+--- @field path string 
 local defaultOpts = {
     path = "~/.local/state/caelestia/scheme.json"
 }
+
+--- @class Base46IntegrationPlugin 
 local plugin = {}
+
+--- @param optionalOpts IntegrationOptions?
 function plugin.setup(optionalOpts)
     local opts = optionalOpts or defaultOpts
     local ffi = require("ffi")
