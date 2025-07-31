@@ -1,10 +1,10 @@
---- @class IntegrationOptions 
---- @field path string 
+--- @class IntegrationOptions
+--- @field path string
 local defaultOpts = {
     path = "~/.local/state/caelestia/scheme.json"
 }
 
---- @class Base46IntegrationPlugin 
+--- @class Base46IntegrationPlugin
 local plugin = {}
 
 --- @param optionalOpts IntegrationOptions?
@@ -179,20 +179,16 @@ function plugin.setup(optionalOpts)
         of:write(output)
         of:close()
 
-        local m = assert(dofile(output_path))
         require("nvconfig").base46.theme = 'caelestia'
-        require("base46").override_theme(m, "caelestia")
         require("base46").load_all_highlights()
+        require('nvchad.utils').reload()
     end
 
     local function on_file_change()
         local contents = read_entire_file(path)
         if contents then
             vim.schedule(function()
-                if needs_regen(contents) then
-                    vim.notify("Regen theme", vim.log.levels.INFO)
-                    gen_theme(contents)
-                end
+                gen_theme(contents)
                 vim.notify("Theme changed!", vim.log.levels.INFO)
             end)
         end
