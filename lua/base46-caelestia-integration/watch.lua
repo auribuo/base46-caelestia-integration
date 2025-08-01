@@ -31,13 +31,14 @@ function M.watch_file(path, on_change)
         return
     end
 
-    vim.loop.new_timer():start(0, 1000, function()
+
+    vim.loop.new_timer():start(0, 1000, vim.schedule_wrap(function()
         local buffer = ffi.new("uint8_t[?]", BUF_LEN)
         local bytes = ffi.C.read(fd, buffer, BUF_LEN)
         if bytes > 0 then
-            vim.schedule(on_change)
+            on_change()
         end
-    end)
+    end))
 end
 
 return M

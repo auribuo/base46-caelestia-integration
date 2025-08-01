@@ -1,16 +1,30 @@
 local watch = require("base46-caelestia-integration.watch")
 local fshelper = require("base46-caelestia-integration.fshelper")
 
-
 --- @class Base46IntegrationPluginOptions
 --- @field path string
---- @field name string 
+--- @field name string
 --- @field variants boolean
-local defaultOpts = {
+--- @field notify boolean
+local default_opts = {
     path = "~/.local/state/caelestia/scheme.json",
     name = "caelestia",
-    variants = true,
+    variants = false,
+    notify = false,
 }
+
+--- @param user Base46IntegrationPluginOptions?
+--- @param default Base46IntegrationPluginOptions
+--- @return Base46IntegrationPluginOptions
+local function merge_configs(user, default)
+    if not user then return default end
+    for k, v in pairs(user) do
+        if v ~= nil then
+            default[k] = v
+        end
+    end
+    return default
+end
 
 --- @param data table
 --- @param variants boolean
@@ -121,17 +135,17 @@ local function gen_theme_file(path, name, variants)
     local theme, theme_name_part = gen_theme(scheme_data, variants)
     local theme_name = name .. "-" .. theme_name_part
     local theme_file_content = serialize_theme(theme, theme_name)
-    local theme_file_path = vim.fn.stdpath("config") .. "/lua/themes/" .. theme_name .. ".lua"
+    local theme_file_path = vim.fn.stdpath("data") .. "/lazy/base46/lua/base46/themes/" .. theme_name .. ".lua"
     fshelper.write_entire_file(theme_file_path, theme_file_content)
-    return theme_name
+    return { theme_file_path = theme_file_path, theme_name = theme_name }
 end
 
 --- @class Base46IntegrationPlugin
 local plugin = {}
 
---- @param optionalOpts Base46IntegrationPluginOptions?
-function plugin.setup(optionalOpts)
-    local opts = optionalOpts or defaultOpts
+--- @param optional_opts Base46IntegrationPluginOptions?
+function plugin.setup(optional_opts)
+    local opts = merge_configs(optional_opts, default_opts)
 
     local path = opts.path and opts.path:gsub("^~", vim.fn.expand("$HOME"))
 
@@ -141,14 +155,15 @@ function plugin.setup(optionalOpts)
             vim.notify("Failed to generate theme: " .. result, vim.log.levels.ERROR)
             return
         end
-        vim.wait(500)
-        require("base46").load_all_highlights()
-        require("nvconfig").base46.theme = result
+
         require("base46").load_all_highlights()
         require("nvchad.utils").reload()
-        vim.notify("Theme change detected: " .. result, vim.log.levels.INFO)
+        if opts.notify then
+            vim.notify("Theme change detected: " .. result.theme_name, vim.log.levels.INFO)
+        end
     end
 
+    on_file_change()
     watch.watch_file(path, on_file_change)
 end
 
