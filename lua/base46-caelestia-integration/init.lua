@@ -4,14 +4,18 @@ local fshelper = require("base46-caelestia-integration.fshelper")
 
 --- @class Base46IntegrationPluginOptions
 --- @field path string
+--- @field name string 
+--- @field variants boolean
 local defaultOpts = {
     path = "~/.local/state/caelestia/scheme.json",
-    name = "caelestia"
+    name = "caelestia",
+    variants = true,
 }
 
 --- @param data table
+--- @param variants boolean
 --- @return Base46Table, string
-local function gen_theme(data)
+local function gen_theme(data, variants)
     local c = data.colours
 
     --- @type Base46Table
@@ -73,7 +77,11 @@ local function gen_theme(data)
         polish_hl = {}
     }
 
-    return t, (data.name)
+    local tname = data.name
+    if variants then
+        tname = tname .. "-" .. data.mode
+    end
+    return t, tname
 end
 
 --- @param t Base46Table
@@ -108,9 +116,9 @@ local function serialize_theme(t, name)
     return table.concat(lines, "\n")
 end
 
-local function gen_theme_file(path, name)
+local function gen_theme_file(path, name, variants)
     local scheme_data = fshelper.read_scheme(path)
-    local theme, theme_name_part = gen_theme(scheme_data)
+    local theme, theme_name_part = gen_theme(scheme_data, variants)
     local theme_name = name .. "-" .. theme_name_part
     local theme_file_content = serialize_theme(theme, theme_name)
     local theme_file_path = vim.fn.stdpath("config") .. "/lua/themes/" .. theme_name .. ".lua"
@@ -128,7 +136,7 @@ function plugin.setup(optionalOpts)
     local path = opts.path and opts.path:gsub("^~", vim.fn.expand("$HOME"))
 
     local function on_file_change()
-        local ok, result = pcall(gen_theme_file, path, opts.name)
+        local ok, result = pcall(gen_theme_file, path, opts.name, opts.variants)
         if not ok then
             vim.notify("Failed to generate theme: " .. result, vim.log.levels.ERROR)
             return
