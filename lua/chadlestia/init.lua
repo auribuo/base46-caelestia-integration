@@ -157,7 +157,7 @@ function plugin.setup(optional_opts)
     local path = opts.path and opts.path:gsub("^~", vim.fn.expand("$HOME"))
 
     local function on_file_change()
-        local ok, result = pcall(gen_theme_file, path, opts.name, opts.variants)
+        local ok, result = pcall(gen_theme_file, path, opts)
         if not ok then
             vim.notify("Failed to generate theme: " .. result, vim.log.levels.ERROR)
             return
