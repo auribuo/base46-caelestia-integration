@@ -6,11 +6,13 @@ local fshelper = require("chadlestia.fshelper")
 --- @field name string
 --- @field variants boolean
 --- @field notify boolean
+--- @field local_theme boolean
 local default_opts = {
     path = "~/.local/state/caelestia/scheme.json",
     name = "caelestia",
     variants = false,
     notify = false,
+    local_theme = false
 }
 
 --- @param user Base46IntegrationPluginOptions?
@@ -130,12 +132,17 @@ local function serialize_theme(t, name)
     return table.concat(lines, "\n")
 end
 
-local function gen_theme_file(path, name, variants)
+local function gen_theme_file(path, opts)
     local scheme_data = fshelper.read_scheme(path)
-    local theme, theme_name_part = gen_theme(scheme_data, variants)
-    local theme_name = name .. "-" .. theme_name_part
+    local theme, theme_name_part = gen_theme(scheme_data, opts.variants)
+    local theme_name = opts.name .. "-" .. theme_name_part
     local theme_file_content = serialize_theme(theme, theme_name)
-    local theme_file_path = vim.fn.stdpath("data") .. "/lazy/base46/lua/base46/themes/" .. theme_name .. ".lua"
+    local theme_file_path
+    if opts.local_theme then
+        theme_file_path = vim.fn.stdpath("config") .. "/lua/themes/" .. theme_name .. ".lua"
+    else
+        theme_file_path = vim.fn.stdpath("data") .. "/lazy/base46/lua/base46/themes/" .. theme_name .. ".lua"
+    end
     fshelper.write_entire_file(theme_file_path, theme_file_content)
     return { theme_file_path = theme_file_path, theme_name = theme_name }
 end
